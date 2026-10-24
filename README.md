@@ -24,3 +24,10 @@ GitHub Pages publishing instructions: https://docs.github.com/en/pages/getting-s
 
 Jashn-E Rang 2026 is available publicly at https://aswinwroks-ui.github.io/framefolk/?campaign=jashn-e-rang-2026. Its 1080 × 1080 frame is served from assets/jashn-e-rang-2026.png, so the link works on other devices. Use Copy campaign link in the editor to share it.
 
+
+## Managing your collection
+
+Browser-local campaigns have Delete campaign controls on the card and editor, with Undo campaign deletion available after deletion. The two owner-identified test campaigns are moved to this recoverable list once on upgrade. Published campaigns remain available to everyone.
+
+Custom frame cards show the actual frame without sample text overlays. After downloading a finished portrait, a compact preview is saved in Your profile images (up to six per browser). These previews stay on the device, can be downloaded or removed, and are not a public photo gallery. The initial download remains 1080 × 1080; stored previews are 540 × 540 WebP.
+

@@ -40,7 +40,93 @@ function restoreCampaigns() {
   } catch { return []; }
 }
 saved = restoreCampaigns();
+const TRASH_KEY = 'framefolk-deleted-campaigns';
+const GALLERY_KEY = 'framefolk-profile-images';
+function readList(key) {
+  try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; }
+  catch { return []; }
+}
+let trash = readList(TRASH_KEY).filter(c => c && typeof c.id === 'string'), portraits = readList(GALLERY_KEY).filter(p => p && typeof p.title === 'string' && validFrame(p.image));
+// Remove only the two browser-local campaigns identified by the owner.
+const removedTitles = new Set(['ജഷ്ൻ എ രംഗ്', 'eqeqeq']);
+let cleanupDone = false;
+try { cleanupDone = Boolean(localStorage.getItem('framefolk-cleanup-2026-10-24')); } catch { cleanupDone = true; }
+if (!cleanupDone) {
+  const removed = saved.filter(c => removedTitles.has(c.title.trim()));
+  try {
+    if (removed.length) {
+      trash = [...removed, ...trash];
+      const remaining = saved.filter(c => !removed.includes(c));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(remaining));
+      try { localStorage.setItem(TRASH_KEY, JSON.stringify(trash)); }
+      catch (error) { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); throw error; }
+      saved = remaining;
+    }
+    localStorage.setItem('framefolk-cleanup-2026-10-24', 'done');
+  } catch { /* Keep the original campaigns if browser storage is unavailable. */ }
+}
 let campaigns = [...saved, ...seeds];
+
+function updateUndo() { $('#undoCampaign').hidden = trash.length === 0; }
+function deleteCampaign(c) {
+  const remaining = saved.filter(item => item.id !== c.id);
+  const nextTrash = [c, ...trash];
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(remaining));
+    try { localStorage.setItem(TRASH_KEY, JSON.stringify(nextTrash)); }
+    catch (error) { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); throw error; }
+  } catch { $('#campaignstatus').textContent = 'Could not delete this campaign. Browser storage is unavailable.'; return; }
+  saved = remaining; trash = nextTrash; campaigns = [...saved, ...seeds];
+  if (editor.open && selected.id === c.id) editor.close();
+  $('#campaignstatus').textContent = 'Campaign deleted. You can undo this below.';
+  render(); updateUndo();
+}
+$('#undoCampaign').onclick = () => {
+  const c = trash[0];
+  if (!c) return;
+  const next = saved.some(item => item.id === c.id) ? saved : [c, ...saved];
+  try {
+    localStorage.setItem(TRASH_KEY, JSON.stringify(trash.slice(1)));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }
+    catch (error) { localStorage.setItem(TRASH_KEY, JSON.stringify(trash)); throw error; }
+  } catch { $('#campaignstatus').textContent = 'Could not restore this campaign. Browser storage is full.'; return; }
+  saved = next; trash = trash.slice(1); campaigns = [...saved, ...seeds];
+  $('#campaignstatus').textContent = 'Campaign restored.';
+  render(); updateUndo();
+};
+updateUndo();
+
+function renderPortraits() {
+  $('#portraits').replaceChildren();
+  $('#portraitempty').hidden = portraits.length > 0;
+  portraits.forEach((p, index) => {
+    if (!validFrame(p.image) || typeof p.title !== 'string') return;
+    const card = document.createElement('article');
+    card.className = 'portrait-card';
+    const img = document.createElement('img'); img.src = p.image; img.alt = p.title + ' profile image';
+    const title = document.createElement('h3'); title.textContent = p.title;
+    const download = document.createElement('a'); download.className = 'outline';
+    download.href = p.image; download.download = 'framefolk-preview.webp'; download.textContent = 'Download preview ↓';
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'delete-campaign';
+    remove.textContent = 'Remove image'; remove.setAttribute('aria-label', 'Remove profile image: ' + p.title);
+    remove.onclick = () => {
+      const next = portraits.filter((_, i) => i !== index);
+      try { localStorage.setItem(GALLERY_KEY, JSON.stringify(next)); portraits = next; renderPortraits(); }
+      catch { $('#portraitstatus').textContent = 'Could not remove this image. Please try again.'; }
+    };
+    card.append(img, title, download, remove); $('#portraits').append(card);
+  });
+}
+function savePortrait(title) {
+  // A compact preview keeps browser storage available for full-resolution frames.
+  const preview = document.createElement('canvas'); preview.width = preview.height = 540;
+  preview.getContext('2d').drawImage(canvas, 0, 0, 540, 540);
+  const image = preview.toDataURL('image/webp', .88);
+  const next = [{title, image}, ...portraits.filter(p => p.image !== image)].slice(0, 6);
+  try { localStorage.setItem(GALLERY_KEY, JSON.stringify(next)); portraits = next; renderPortraits(); }
+  catch { $('#portraitstatus').textContent = 'Your download is ready, but the preview could not be saved. Browser storage may be full.'; }
+}
+renderPortraits();
 
 function selectCategory(value) {
   category = value;
@@ -71,13 +157,25 @@ function render() {
     seeds.findIndex(x => x.id === a.id) - seeds.findIndex(x => x.id === b.id));
   $('#cards').replaceChildren();
   list.forEach(c => {
+    const wrapper = document.createElement('article');
+    wrapper.className = 'campaign-card';
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'card';
     b.setAttribute('aria-label', 'Use frame: ' + c.title);
-    b.innerHTML = `<div class="art" style="background:${c.color}"><h3>${escapeHTML(c.headline)}</h3><div class="face">${escapeHTML(c.symbol)}</div><small>FRAMEFOLK / SHOW UP FOR GOOD ↗</small>${c.frame ? '<img alt="Custom campaign frame" src="' + c.frame + '">' : ''}</div><div class="cardmeta"><span>${escapeHTML(c.category.toUpperCase())}</span><span>↗ Join campaign</span></div><h3>${escapeHTML(c.title)}</h3><p>${seeds.some(x => x.id === c.id) ? (c.frame ? 'Public campaign · Share with your community' : 'Framefolk collection') : 'Your campaign · Saved on this device'}</p>`;
+    const artwork = c.frame
+      ? '<img alt="' + escapeHTML(c.title) + ' frame" src="' + escapeHTML(c.frame) + '">'
+      : `<h3>${escapeHTML(c.headline)}</h3><div class="face">${escapeHTML(c.symbol)}</div><small>FRAMEFOLK / SHOW UP FOR GOOD ↗</small>`;
+    b.innerHTML = `<div class="art${c.frame ? ' frame-art' : ''}" style="background:${c.color}">${artwork}</div><div class="cardmeta"><span>${escapeHTML(c.category.toUpperCase())}</span><span>↗ Join campaign</span></div><h3>${escapeHTML(c.title)}</h3><p>${seeds.some(x => x.id === c.id) ? (c.frame ? 'Public campaign · Share with your community' : 'Framefolk collection') : 'Your campaign · Saved on this device'}</p>`;
     b.onclick = () => openEditor(c);
-    $('#cards').append(b);
+    wrapper.append(b);
+    if (saved.some(item => item.id === c.id)) {
+      const remove = document.createElement('button'); remove.type = 'button';
+      remove.className = 'delete-campaign'; remove.textContent = 'Delete campaign';
+      remove.setAttribute('aria-label', 'Delete campaign: ' + c.title);
+      remove.onclick = () => deleteCampaign(c); wrapper.append(remove);
+    }
+    $('#cards').append(wrapper);
   });
   $('#empty').hidden = list.length !== 0;
 }
@@ -109,6 +207,8 @@ async function openEditor(c) {
   frameLoading = Boolean(c.frame);
   $('#editTitle').textContent = c.title;
   $('#editDesc').textContent = c.desc;
+  $('#deleteCampaign').hidden = !saved.some(item => item.id === c.id);
+  $('#deleteCampaign').onclick = () => deleteCampaign(c);
   $('#photo').value = '';
   $('#photostatus').textContent = 'Choose a photo to get started.';
   $('#editorstatus').textContent = '';
@@ -252,10 +352,12 @@ editor.addEventListener('drop', e => { e.preventDefault(); choosePhoto(e.dataTra
 $('#download').onclick = () => {
   if (!photoImage || frameLoading || exporting) return;
   const version = editorVersion, id = selected.id;
+  const title = selected.title;
   exporting = true;
   updateDownload();
   draw();
   try {
+    savePortrait(title);
     canvas.toBlob(blob => {
       exporting = false;
       updateDownload();
