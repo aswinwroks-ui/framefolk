@@ -19,3 +19,8 @@ Sample campaigns support links such as `?campaign=earth`. Participant photos are
 ## Reference
 
 GitHub Pages publishing instructions: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+
+## Published event campaign
+
+Jashn-E Rang 2026 is available publicly at https://aswinwroks-ui.github.io/framefolk/?campaign=jashn-e-rang-2026. Its 1080 × 1080 frame is served from assets/jashn-e-rang-2026.png, so the link works on other devices. Use Copy campaign link in the editor to share it.
+

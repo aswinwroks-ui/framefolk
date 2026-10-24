@@ -1,4 +1,14 @@
 const seeds=[{id:'earth',title:'A little greener, together',headline:'THERE IS NO PLANET B.',category:'Environment',color:'#cce784',symbol:'✿',desc:'Stand with a greener future. Every small action adds up.'},{id:'community',title:'Better when we belong',headline:'YOU BELONG HERE.',category:'Community',color:'#c3b3ed',symbol:'☺',desc:'Celebrate the people who make your community feel like home.'},{id:'learning',title:'Every mind deserves a chance',headline:'LET CURIOSITY GROW.',category:'Education',color:'#f1bb79',symbol:'✹',desc:'Show your support for learning opportunities for everyone.'},{id:'kindness',title:'Make kindness your thing',headline:'A LITTLE KINDNESS GOES FAR.',category:'Health',color:'#efb7c5',symbol:'♡',desc:'Start a conversation about care, compassion, and wellbeing.'},{id:'celebrate',title:'Here’s to all of us',headline:'GOOD TIMES. GREAT PEOPLE.',category:'Celebrations',color:'#abd9ed',symbol:'✦',desc:'Celebrate your milestones with the people who got you here.'},{id:'ocean',title:'Keep our oceans blue',headline:'MAKE WAVES FOR GOOD.',category:'Environment',color:'#83cec1',symbol:'≈',desc:'Put ocean conservation in the picture and show your support.'},{id:'read',title:'Open a book, open a world',headline:'BIG DREAMS START HERE.',category:'Education',color:'#e2cba1',symbol:'✳',desc:'Support literacy and a world full of possibility.'},{id:'together',title:'Stronger side by side',headline:'MORE US. MORE POSSIBLE.',category:'Community',color:'#d0dfb1',symbol:'☻',desc:'Bring your team together around something that matters.'}];
+seeds.unshift({
+  id: 'jashn-e-rang-2026',
+  title: 'ജഷ്ൻ എ രംഗ് 2026',
+  headline: 'JASHN-E RANG 2026',
+  category: 'Celebrations',
+  color: '#ff006e',
+  symbol: '✦',
+  desc: 'ജഷ്ൻ എ രംഗ് 2026 · നവംബർ 4, 5, 6, 7. നിങ്ങളുടെ ഫോട്ടോ ചേർത്ത് ക്യാമ്പെയ്‌നിന്റെ ഭാഗമാകൂ.',
+  frame: 'assets/jashn-e-rang-2026.png'
+});
 const $ = selector => document.querySelector(selector);
 const editor = $('#editor'), creator = $('#creator'), canvas = $('#canvas');
 const ctx = canvas.getContext('2d'), SIZE = canvas.width;
@@ -65,7 +75,7 @@ function render() {
     b.type = 'button';
     b.className = 'card';
     b.setAttribute('aria-label', 'Use frame: ' + c.title);
-    b.innerHTML = `<div class="art" style="background:${c.color}"><h3>${escapeHTML(c.headline)}</h3><div class="face">${escapeHTML(c.symbol)}</div><small>FRAMEFOLK / SHOW UP FOR GOOD ↗</small>${c.frame ? '<img alt="Custom campaign frame" src="' + c.frame + '">' : ''}</div><div class="cardmeta"><span>${escapeHTML(c.category.toUpperCase())}</span><span>↗ Join campaign</span></div><h3>${escapeHTML(c.title)}</h3><p>${seeds.some(x => x.id === c.id) ? 'Framefolk collection' : 'Your campaign · Saved on this device'}</p>`;
+    b.innerHTML = `<div class="art" style="background:${c.color}"><h3>${escapeHTML(c.headline)}</h3><div class="face">${escapeHTML(c.symbol)}</div><small>FRAMEFOLK / SHOW UP FOR GOOD ↗</small>${c.frame ? '<img alt="Custom campaign frame" src="' + c.frame + '">' : ''}</div><div class="cardmeta"><span>${escapeHTML(c.category.toUpperCase())}</span><span>↗ Join campaign</span></div><h3>${escapeHTML(c.title)}</h3><p>${seeds.some(x => x.id === c.id) ? (c.frame ? 'Public campaign · Share with your community' : 'Framefolk collection') : 'Your campaign · Saved on this device'}</p>`;
     b.onclick = () => openEditor(c);
     $('#cards').append(b);
   });
