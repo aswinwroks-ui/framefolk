@@ -7,7 +7,7 @@ seeds.unshift({
   color: '#ff006e',
   symbol: '✦',
   desc: 'ജഷ്ൻ എ രംഗ് 2026 · നവംബർ 4, 5, 6, 7. നിങ്ങളുടെ ഫോട്ടോ ചേർത്ത് ക്യാമ്പെയ്‌നിന്റെ ഭാഗമാകൂ.',
-  frame: 'assets/jashn-e-rang-2026.png'
+  frame: 'assets/jashn-e-rang-2026-v2.png'
 });
 const $ = selector => document.querySelector(selector);
 const editor = $('#editor'), creator = $('#creator'), canvas = $('#canvas');
